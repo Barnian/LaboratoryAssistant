@@ -98,30 +98,50 @@ class LogicaPdf:
         self.c.rect((x - 0.25) * mm, (y - 0.25) * mm, 0.5 * mm, 0.5 * mm, fill=1)
 
     def adjust_values(self, deg, t, dt, upper_limit=18, lower_limit=9):
+        koef = [5, 2, 1, 4, 2.5]
+        values = [0, 0, 0]
         while True:
             min_t = min(t)
             max_t = max(t)
-            if upper_limit >= (max_t - min_t) * 5 > lower_limit:
-                kx = 5
-                break
-            elif upper_limit >= (max_t - min_t) * 2 > lower_limit:
-                kx = 2
-                break
-            elif upper_limit >= (max_t - min_t) * 1 > lower_limit:
-                kx = 1
-                break
-            elif upper_limit >= (max_t - min_t) * 4 > lower_limit:
-                kx = 4
-                break
-            elif upper_limit >= (max_t - min_t) * 2.5 > lower_limit:
-                kx = 2.5
-                break
-            else:
+            kx = 0
+            # if upper_limit >= (max_t - min_t) * 5 > lower_limit:
+            #     kx = 5
+            #     break
+            # elif upper_limit >= (max_t - min_t) * 2 > lower_limit:
+            #     kx = 2
+            #     break
+            # elif upper_limit >= (max_t - min_t) * 1 > lower_limit:
+            #     kx = 1
+            #     break
+            # elif upper_limit >= (max_t - min_t) * 4 > lower_limit:
+            #     kx = 4
+            #     break
+            # elif upper_limit >= (max_t - min_t) * 2.5 > lower_limit:
+            #     kx = 2.5
+            #     break
+            # else:
+            #     for i in range(len(self.X)):
+            #         t[i] *= 10
+            #         dt[i] *= 10
+            #     deg -= 1
+            for i in koef:
+                if upper_limit >= (max_t - min_t) * i > lower_limit:
+                    kx = i
+                    return kx, deg, t, dt
+                elif upper_limit > (max_t - min_t) * i > values[2]:
+                    values = [i, deg, (max_t - min_t)*i]
+            if kx ==0:
                 for i in range(len(self.X)):
                     t[i] *= 10
                     dt[i] *= 10
                 deg -= 1
-        return kx, deg, t, dt
+            if max_t - min_t > upper_limit:
+                for i in range(len(self.X)):
+                    t[i] /= 10 ** (values[1]-deg)
+                    dt[i] /= 10 ** (values[1]-deg)
+                # deg = values[1]
+                return values[0], values[1], t, dt
+        # return kx, deg, t, dt
 
     def create_vertical_grafik(self):
 
