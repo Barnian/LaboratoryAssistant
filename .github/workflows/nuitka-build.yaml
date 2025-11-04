@@ -1,0 +1,82 @@
+name: Build with Nuitka
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install Nuitka and dependencies
+      run: |
+        pip install nuitka
+        pip install -r requirements.txt  
+
+    - name: Compile with Nuitka (Linux)
+      uses: Nuitka/Nuitka-Action@main
+      with:
+        nuitka-version: main
+        script-name: main.py
+        enable-plugins: pyside6
+        mode: onefile
+        include-data-files: |
+          DejaVuSans.ttf=DejaVuSans.ttf
+          DejaVuSans-Bold.ttf=DejaVuSans-Bold.ttf
+          primer.png=primer.png
+        # Для Linux иконка задается через --linux-icon, но в действии может потребоваться отдельный шаг
+        output-filename: Laboratory-Assistant  # Имя без пробелов рекомендуется
+        extra-nuitka-options: "--linux-icon=doof.ico"
+
+    - name: Upload Artifact (Linux)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Laboratory-Assistant-Linux
+        path: Laboratory-Assistant
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install Nuitka and dependencies
+      run: |
+        pip install nuitka
+        pip install -r requirements.txt
+
+    - name: Compile with Nuitka (Windows)
+      uses: Nuitka/Nuitka-Action@main
+      with:
+        nuitka-version: main
+        script-name: main.py
+        enable-plugins: pyside6
+        mode: onefile
+        include-data-files: |
+          DejaVuSans.ttf=DejaVuSans.ttf
+          DejaVuSans-Bold.ttf=DejaVuSans-Bold.ttf
+          primer.png=primer.png
+        windows-console-mode: disable
+        windows-icon-from-ico: doof.ico  # Для Windows используйте этот параметр
+        output-filename: Laboratory-Assistant.exe
+
+    - name: Upload Artifact (Windows)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Laboratory-Assistant-Windows
+        path: Laboratory-Assistant.exe
