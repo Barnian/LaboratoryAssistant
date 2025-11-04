@@ -7,8 +7,12 @@ on:
     branches: [ main ]
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -17,66 +21,30 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
+        architecture: 'x64'
+        cache: 'pip'
+        cache-dependency-path: '**/requirements*.txt'
 
-    - name: Install Nuitka and dependencies
+    - name: Install Dependencies
       run: |
-        pip install nuitka
-        pip install -r requirements.txt  
-
-    - name: Compile with Nuitka (Linux)
-      uses: Nuitka/Nuitka-Action@main
-      with:
-        nuitka-version: main
-        script-name: main.py
-        enable-plugins: pyside6
-        mode: onefile
-        include-data-files: |
-          DejaVuSans.ttf=DejaVuSans.ttf
-          DejaVuSans-Bold.ttf=DejaVuSans-Bold.ttf
-          primer.png=primer.png
-        # Для Linux иконка задается через --linux-icon, но в действии может потребоваться отдельный шаг
-        output-filename: Laboratory-Assistant  # Имя без пробелов рекомендуется
-        extra-nuitka-options: "--linux-icon=doof.ico"
-
-    - name: Upload Artifact (Linux)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Laboratory-Assistant-Linux
-        path: Laboratory-Assistant
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-
-    - name: Install Nuitka and dependencies
-      run: |
-        pip install nuitka
         pip install -r requirements.txt
 
-    - name: Compile with Nuitka (Windows)
+    - name: Build Executable with Nuitka
       uses: Nuitka/Nuitka-Action@main
       with:
         nuitka-version: main
-        script-name: main.py
+        script-name: main.py  # Замените на имя вашего главного файла
         enable-plugins: pyside6
-        mode: onefile
         include-data-files: |
           DejaVuSans.ttf=DejaVuSans.ttf
           DejaVuSans-Bold.ttf=DejaVuSans-Bold.ttf
           primer.png=primer.png
-        windows-console-mode: disable
-        windows-icon-from-ico: doof.ico  # Для Windows используйте этот параметр
-        output-filename: Laboratory-Assistant.exe
+#        windows-console-mode: disable
+        mode: app
 
-    - name: Upload Artifact (Windows)
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Laboratory-Assistant-Windows
-        path: Laboratory-Assistant.exe
+        name: ${{ runner.os }}-Build
+        path: build/
+        include-hidden-files: true
